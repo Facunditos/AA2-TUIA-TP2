@@ -21,10 +21,10 @@ actions = env.getActionSet()
 parser = argparse.ArgumentParser(description="Test de agentes para FlappyBird (PLE)")
 parser.add_argument('--agent', type=str, required=True, help='Ruta completa del agente, ej: agentes.random_agent.RandomAgent')
 args = parser.parse_args()
-
 # --- Carga dinámica del agente usando path completo ---
 try:
     module_path, class_name = args.agent.rsplit('.', 1)
+    print(module_path,class_name)
     agent_module = importlib.import_module(module_path)
     AgentClass = getattr(agent_module, class_name)
 except (ValueError, ModuleNotFoundError, AttributeError):
@@ -46,6 +46,7 @@ while True:
         action = agent.act(state_dict)
         reward = env.act(action)
         state_dict = env.getGameState()
+        print(state_dict)
         done = env.game_over()
         total_reward_episode += reward
         time.sleep(0.03)
