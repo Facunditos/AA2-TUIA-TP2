@@ -59,6 +59,9 @@ for episode in range(num_episodes):
     agent.decay_epsilon()
 
     if (episode + 1) % 100 == 0:
+        print('Analizando la discretización del estado')
+        print('Estado continuo\n',state_dict)
+        print('Estado discreto\n',agent.discretize_state(state_dict))
         avg_reward = np.mean(rewards_all_episodes[-100:])
         print(f"Episodio: {episode+1}/{num_episodes}, Recompensa Promedio (últimos 100): {avg_reward:.2f}, Epsilon: {agent.epsilon:.3f}")
         agent.save_q_table("flappy_birds_q_table.pkl")
@@ -66,6 +69,7 @@ for episode in range(num_episodes):
 print("Entrenamiento completado.")
 agent.save_q_table("flappy_birds_q_table_final.pkl")
 
+exit()
 # --- Opcional: Ejecutar el agente entrenado (sin exploración) ---
 print("\n--- Ejecutando agente entrenado (modo explotación) ---")
 agent.epsilon = 0

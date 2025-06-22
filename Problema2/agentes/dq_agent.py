@@ -4,6 +4,7 @@ from collections import defaultdict
 import pickle
 import random
 
+
 class QAgent(Agent):
     """
     Agente de Q-Learning.
@@ -97,7 +98,7 @@ class QAgent(Agent):
         elif (state['next_next_pipe_top_y'] > ( state['next_pipe_top_y'] + self.next_next_pipe_relative_position_threshold) ):
             next_next_pipe_relative_position_bin = 2 # El gap de las tuberías más alejadas está debajo del gap de las tuberías más próximas
         else:
-            next_next_pipe_relative_position_bin = 0 # El gap de las tuberías más alejadas está alineado con el gap de las tuberías más próximas
+            next_next_pipe_relative_position_bin = 1 # El gap de las tuberías más alejadas está alineado con el gap de las tuberías más próximas
 
         return (
             player_relative_y_position_bin,
@@ -130,7 +131,6 @@ class QAgent(Agent):
         discrete_next_state = self.discretize_state(next_state)
         action_idx = self.actions.index(action)
         # Inicializar si el estado no está en la Q-table
-        print('estado discretizado',discrete_state)
         if discrete_state not in self.q_table:
             self.q_table[discrete_state] = np.zeros(len(self.actions))
         if discrete_next_state not in self.q_table:
