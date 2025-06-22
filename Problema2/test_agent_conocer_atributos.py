@@ -15,7 +15,7 @@ print(game.pipe_gap)
 env.init()
 
 # Obtener acciones posibles
-actions = env.getActionSet()
+actions = env.getActionSet() # [119, None] saltar,no saltar
 
 # --- Argumentos ---
 parser = argparse.ArgumentParser(description="Test de agentes para FlappyBird (PLE)")
@@ -51,6 +51,7 @@ def jugar(n_veces=10,conjunto_valores=None):
         while not done:
             action = agent.act(state_dict)
             reward = env.act(action)
+            print('premeio',reward)
             state_dict = env.getGameState()
             valores = [value for value in state_dict.values()]
             conjunto_valores.append(valores)            
