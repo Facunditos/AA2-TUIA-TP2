@@ -47,7 +47,6 @@ while True:
     print("\n--- Ejecutando agente ---")
     while not done:
         action = agent.act(state_dict)
-        exit()
         reward = env.act(action)
         state_dict = env.getGameState()
         done = env.game_over()

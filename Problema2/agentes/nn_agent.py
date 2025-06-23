@@ -1,9 +1,10 @@
 from agentes.base import Agent
+from agentes.dq_agent import QAgent
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.losses import MeanSquaredError
 
-class NNAgent(Agent):
+class NNAgent(QAgent):
     """
     Agente que utiliza una red neuronal entrenada para aproximar la Q-table.
     La red debe estar guardada como TensorFlow SavedModel.
@@ -18,12 +19,11 @@ class NNAgent(Agent):
         COMPLETAR: Implementar la función de acción.
         Debe transformar el estado al formato de entrada de la red y devolver la acción con mayor Q.
         """
-        valores_entrada = []
-        for value in state.values():
-            valores_entrada.append(value)
-        valores_entrada = np.array(valores_entrada)    
-        print(valores_entrada)
-        return self.model.predict([valores_entrada])
+        discrete_state = self.discretize_state(state)
+        valores_entrada = np.array(discrete_state)    
+        valores_entrada = valores_entrada.reshape(1,5)
+        predicted_q_values = self.model.predict(valores_entrada)[0]
+        return self.actions[np.argmax(predicted_q_values)]
     
 
 
