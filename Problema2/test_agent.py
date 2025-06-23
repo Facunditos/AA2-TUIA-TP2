@@ -37,7 +37,6 @@ if (class_name=='QAgent'):
 else:
     agent = AgentClass(actions, game)
     
-
 # Agente con acciones aleatorias
 while True:
     env.reset_game()
@@ -48,6 +47,7 @@ while True:
     print("\n--- Ejecutando agente ---")
     while not done:
         action = agent.act(state_dict)
+        exit()
         reward = env.act(action)
         state_dict = env.getGameState()
         done = env.game_over()
