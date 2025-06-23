@@ -17,8 +17,7 @@ agent = QAgent(actions, game, epsilon=1.0, min_epsilon=0.05, epsilon_decay=0.995
                load_q_table_path="flappy_birds_q_table.pkl")
 
 # --- Bucle de Entrenamiento ---
-num_episodes = 10000
-#num_episodes = 20000
+num_episodes = 20000
 max_steps_per_episode = 20000
 rewards_all_episodes = []
 

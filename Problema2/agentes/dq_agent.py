@@ -37,7 +37,6 @@ class QAgent(Agent):
         self.num_bins = {
             'player_velocity_sign': 5, # Informa la dirección del vuelo del pájaro
             'next_gap_relative_y_position': 10,   # Informa la posición central del gap más próximo en relación a la posición del pájaro
-            'player_danger': 9, # Informa el grado de peligrosidad del juego al combinar player_relative_y_position y player_velocity_sign
             'next_pipe_distance': 5, # Informa grado de cercanía del pájaro a las tuberías más próximas
             'next_next_gap_relative_y_position': 10, # Informa la posición central del gap más alejado en relación a la posición del pájaro
             'next_next_pipe_distance': 5, # Informa grado de cercanía del pájaro a las tuberías más alejadas
@@ -77,37 +76,11 @@ class QAgent(Agent):
         relative_next_gap_position_y = next_gap_center_y - state['player_y']
         scaled_relative_next_gap_position_y = (relative_next_gap_position_y + self.game_height / 2) / self.game_height
         relative_next_gap_position_y_bin = int(np.clip(scaled_relative_next_gap_position_y * self.num_bins['next_gap_relative_y_position'], 0, self.num_bins['next_gap_relative_y_position'] - 1))      
-        
-        # player_danger
-        # if player_relative_y_position_bin == 1 and player_velocity_sign_bin == 1:
-        #     player_danger_bin = 0 # A la altura del gap y volando plano (muy bajo peligro)
-        # elif player_relative_y_position_bin == 0 and player_velocity_sign_bin == 2:
-        #     player_danger_bin = 1 # Arriba del gap y bajando (bajo peligro)
-        # elif player_relative_y_position_bin == 2 and player_velocity_sign_bin == 0:
-        #     player_danger_bin = 2 # Debajo del gap y subiendo (bajo peligro)
-        # elif player_relative_y_position_bin == 1 and player_velocity_sign_bin == 0:
-        #     player_danger_bin = 3 # En el gap y subiendo (peligro)
-        # elif player_relative_y_position_bin == 1 and player_velocity_sign_bin == 2:
-        #     player_danger_bin = 4 # En el gap y bajando (peligro)
-        # elif player_relative_y_position_bin == 0 and player_velocity_sign_bin == 1:
-        #     player_danger_bin = 5 # Arriba del gap y volando plano (alto peligro)
-        # elif player_relative_y_position_bin == 2 and player_velocity_sign_bin == 1:
-        #     player_danger_bin = 6 # Debajo del gap y volando plano (alto peligro)
-        # elif player_relative_y_position_bin == 0 and player_velocity_sign_bin == 0:
-        #     player_danger_bin = 7 # Arriba del gap y subiendo (peligro extremo)
-        # else: #player_relative_y_position_bin == 2 and player_velocity_sign_bin == 2:
-        #     player_danger_bin = 8 # Debajo del gap y bajando (peligro extremo)
 
         # next_pipe_distance
         next_pipe_distance_bin = None
-        if state['next_pipe_dist_to_player'] < self.next_pipe_distance_threshold_vey_near:
-            next_pipe_distance_bin = 0 # Muy Cerca    
-        elif state['next_pipe_dist_to_player'] < self.next_pipe_distance_threshold_near:
-            next_pipe_distance_bin = 1 # Muy Cerca    
-        elif state['next_pipe_dist_to_player'] < self.next_pipe_distance_threshold_far:
-            next_pipe_distance_bin = 2 # Distante
-        else:
-            next_pipe_distance_bin = 3 # Muy Distante
+        next_pipe_distance = state['next_pipe_dist_to_player'] / 250
+        next_pipe_distance_bin = int(np.clip(next_pipe_distance * self.num_bins['next_pipe_distance'], 0, self.num_bins['next_pipe_distance'] - 1))
 
         # next_next_gap_relative_y_position
         next_next_gap_center_y = state['next_next_pipe_top_y'] + self.game_pipe_gap / 2
@@ -117,14 +90,8 @@ class QAgent(Agent):
 
         # next_next_pipe_distance
         next_next_pipe_distance_bin = None
-        if state['next_next_pipe_dist_to_player'] < self.next_next_pipe_distance_threshold_vey_near:
-            next_next_pipe_distance_bin = 0 # Muy Cerca    
-        elif state['next_next_pipe_dist_to_player'] < self.next_next_pipe_distance_threshold_near:
-            next_next_pipe_distance_bin = 1 # Muy Cerca    
-        elif state['next_next_pipe_dist_to_player'] < self.next_next_pipe_distance_threshold_far:
-            next_next_pipe_distance_bin = 2 # Distante
-        else:
-            next_next_pipe_distance_bin = 3 # Muy Distante            
+        next_next_pipe_distance = state['next_next_pipe_dist_to_player'] / 420
+        next_next_pipe_distance_bin = int(np.clip(next_next_pipe_distance * self.num_bins['next_next_pipe_distance'], 0, self.num_bins['next_next_pipe_distance'] - 1))           
 
         return (
             player_velocity_sign_bin,

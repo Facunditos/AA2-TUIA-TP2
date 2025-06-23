@@ -31,8 +31,12 @@ except (ValueError, ModuleNotFoundError, AttributeError):
     print(f"No se pudo encontrar la clase {args.agent}")
     sys.exit(1)
 
-# Inicializar el agente
-agent = AgentClass(actions, game)
+# Inicializar el agente. El agente Q con epsilon cero para que la acción no sea aleatoria
+if (class_name=='QAgent'):
+    agent = AgentClass(actions, game,epsilon=0)
+else:
+    agent = AgentClass(actions, game)
+    
 
 # Agente con acciones aleatorias
 while True:
@@ -46,7 +50,6 @@ while True:
         action = agent.act(state_dict)
         reward = env.act(action)
         state_dict = env.getGameState()
-        print(state_dict)
         done = env.game_over()
         total_reward_episode += reward
         time.sleep(0.03)
