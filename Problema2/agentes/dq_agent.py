@@ -22,6 +22,7 @@ class QAgent(Agent):
         # Acceder directamente a las propiedades del juego
         self.game_pipe_gap = self.game.pipe_gap
         self.game_height = self.game.height # PLE pasa el objeto game directamente
+        self.game_width = self.game.width # PLE pasa el objeto game directamente
         # Incorporar la tabla q-table al agente
         if load_q_table_path:
             try:
@@ -36,9 +37,9 @@ class QAgent(Agent):
             self.q_table = defaultdict(lambda: np.zeros(len(self.actions)))
         self.num_bins = {
             'player_velocity_sign': 5, # Informa la dirección del vuelo del pájaro
-            'next_gap_relative_y_position': 10,   # Informa la posición central del gap más próximo en relación a la posición del pájaro
+            'next_gap_relative_y_position': 25,   # Informa la posición central del gap más próximo en relación a la posición del pájaro
             'next_pipe_distance': 5, # Informa grado de cercanía del pájaro a las tuberías más próximas
-            'next_next_gap_relative_y_position': 10, # Informa la posición central del gap más alejado en relación a la posición del pájaro
+            'next_next_gap_relative_y_position': 3, # Informa la posición central del gap más alejado en relación a la posición del pájaro
             'next_next_pipe_distance': 5, # Informa grado de cercanía del pájaro a las tuberías más alejadas
         }
         # Variables auxiliares para la discretización
@@ -79,14 +80,16 @@ class QAgent(Agent):
 
         # next_pipe_distance
         next_pipe_distance_bin = None
-        next_pipe_distance = state['next_pipe_dist_to_player'] / 250
+        next_pipe_distance = state['next_pipe_dist_to_player'] / self.game_width
         next_pipe_distance_bin = int(np.clip(next_pipe_distance * self.num_bins['next_pipe_distance'], 0, self.num_bins['next_pipe_distance'] - 1))
 
         # next_next_gap_relative_y_position
-        next_next_gap_center_y = state['next_next_pipe_top_y'] + self.game_pipe_gap / 2
-        relative_next_next_gap_position_y = next_next_gap_center_y - state['player_y']
-        scaled_relative_next_next_gap_position_y = (relative_next_next_gap_position_y + self.game_height / 2) / self.game_height
-        relative_next_next_gap_position_y_bin = int(np.clip(scaled_relative_next_next_gap_position_y * self.num_bins['next_gap_relative_y_position'], 0, self.num_bins['next_gap_relative_y_position'] - 1))
+        if (next_gap_center_y < state['next_next_pipe_top_y']):
+            relative_next_next_gap_position_y_bin = 0
+        elif (next_gap_center_y<state['next_next_pipe_bottom_y']):
+            relative_next_next_gap_position_y_bin = 1
+        else:
+            relative_next_next_gap_position_y_bin = 2
 
         # next_next_pipe_distance
         next_next_pipe_distance_bin = None
@@ -96,10 +99,9 @@ class QAgent(Agent):
         return (
             player_velocity_sign_bin,
             relative_next_gap_position_y_bin,
-            #player_danger_bin,
             next_pipe_distance_bin,
             relative_next_next_gap_position_y_bin,
-            next_next_pipe_distance_bin,
+            #next_next_pipe_distance_bin,
         )
 
     def act(self, state):
