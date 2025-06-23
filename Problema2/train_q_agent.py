@@ -67,6 +67,7 @@ for episode in range(num_episodes):
         agent.save_q_table("flappy_birds_q_table.pkl")
 
 print("Entrenamiento completado.")
+print('Recompensa promedio por episodio:',np.mean(rewards_all_episodes))
 agent.save_q_table("flappy_birds_q_table_final.pkl")
 
 exit()
