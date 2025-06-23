@@ -35,11 +35,12 @@ class QAgent(Agent):
         else:
             self.q_table = defaultdict(lambda: np.zeros(len(self.actions)))
         self.num_bins = {
-            'gap_relative_y_position': 10,   # Informa la posición central del gap en relación a la posición del pájaro
             'player_velocity_sign': 5, # Informa la dirección del vuelo del pájaro
+            'next_gap_relative_y_position': 10,   # Informa la posición central del gap más próximo en relación a la posición del pájaro
             'player_danger': 9, # Informa el grado de peligrosidad del juego al combinar player_relative_y_position y player_velocity_sign
-            'next_pipe_distance': 3, # Informa grado de cercanía del pájaro a las tuberías más próximas
-            'next_next_pipe_relative_position': 3, # Informa la posición de las tuberías más alejadas en relación a las tuberías más próximas
+            'next_pipe_distance': 5, # Informa grado de cercanía del pájaro a las tuberías más próximas
+            'next_next_gap_relative_y_position': 10, # Informa la posición central del gap más alejado en relación a la posición del pájaro
+            'next_next_pipe_distance': 5, # Informa grado de cercanía del pájaro a las tuberías más alejadas
         }
         # Variables auxiliares para la discretización
         self.player_velocity_up_fast_threshold = -7
@@ -47,21 +48,18 @@ class QAgent(Agent):
         self.player_velocity_stable_threshold = 0
         self.player_velocity_down_slow_threshold = 5 
 
-        self.next_pipe_distance_threshold_far = 137 
-        self.next_pipe_distance_threshold_near = 73
-        self.next_pipe_distance_threshold_vey_near = 30
-        self.next_next_pipe_relative_position_threshold = 30
+        self.next_pipe_distance_threshold_vey_near = 58
+        self.next_pipe_distance_threshold_near = 109
+        self.next_pipe_distance_threshold_far = 177 
+
+        self.next_next_pipe_distance_threshold_vey_near = 209
+        self.next_next_pipe_distance_threshold_near = 257
+        self.next_next_pipe_distance_threshold_far = 321
 
     def discretize_state(self, state):
         """
         Permite pasar de un estado continuo a otro discreto customerizado
         """
-        # gap_relative_y_position
-        gap_center_y = state['next_pipe_top_y'] + self.game_pipe_gap / 2
-        relative_gap_position_y = gap_center_y - state['player_y']
-        scaled_relative_gap_position_y = (relative_gap_position_y + self.game_height / 2) / self.game_height
-        relative_gap_position_y_bin = int(np.clip(scaled_relative_gap_position_y * self.num_bins['gap_relative_y_position'], 0, self.num_bins['gap_relative_y_position'] - 1))      
-        
         # player_velocity_sign
         if state['player_vel'] <= self.player_velocity_up_fast_threshold:
             player_velocity_sign_bin = 0 # Vuelo ascendente rápido
@@ -73,6 +71,13 @@ class QAgent(Agent):
             player_velocity_sign_bin = 3 # Vuelo descendente rápido
         else: # Vuelo descendente muy rápido
             player_velocity_sign_bin = 4 # Vuelo plano
+
+        # next_gap_relative_y_position
+        next_gap_center_y = state['next_pipe_top_y'] + self.game_pipe_gap / 2
+        relative_next_gap_position_y = next_gap_center_y - state['player_y']
+        scaled_relative_next_gap_position_y = (relative_next_gap_position_y + self.game_height / 2) / self.game_height
+        relative_next_gap_position_y_bin = int(np.clip(scaled_relative_next_gap_position_y * self.num_bins['next_gap_relative_y_position'], 0, self.num_bins['next_gap_relative_y_position'] - 1))      
+        
         # player_danger
         # if player_relative_y_position_bin == 1 and player_velocity_sign_bin == 1:
         #     player_danger_bin = 0 # A la altura del gap y volando plano (muy bajo peligro)
@@ -103,20 +108,31 @@ class QAgent(Agent):
             next_pipe_distance_bin = 2 # Distante
         else:
             next_pipe_distance_bin = 3 # Muy Distante
-        # next_next_pipe_relative_position 
-        if (state['next_next_pipe_top_y'] < ( state['next_pipe_top_y'] - self.next_next_pipe_relative_position_threshold) ):
-            next_next_pipe_relative_position_bin = 0 # El gap de las tuberías más alejadas está arriba del gap de las tuberías más próximas
-        elif (state['next_next_pipe_top_y'] > ( state['next_pipe_top_y'] + self.next_next_pipe_relative_position_threshold) ):
-            next_next_pipe_relative_position_bin = 2 # El gap de las tuberías más alejadas está debajo del gap de las tuberías más próximas
+
+        # next_next_gap_relative_y_position
+        next_next_gap_center_y = state['next_next_pipe_top_y'] + self.game_pipe_gap / 2
+        relative_next_next_gap_position_y = next_next_gap_center_y - state['player_y']
+        scaled_relative_next_next_gap_position_y = (relative_next_next_gap_position_y + self.game_height / 2) / self.game_height
+        relative_next_next_gap_position_y_bin = int(np.clip(scaled_relative_next_next_gap_position_y * self.num_bins['next_gap_relative_y_position'], 0, self.num_bins['next_gap_relative_y_position'] - 1))
+
+        # next_next_pipe_distance
+        next_next_pipe_distance_bin = None
+        if state['next_next_pipe_dist_to_player'] < self.next_next_pipe_distance_threshold_vey_near:
+            next_next_pipe_distance_bin = 0 # Muy Cerca    
+        elif state['next_next_pipe_dist_to_player'] < self.next_next_pipe_distance_threshold_near:
+            next_next_pipe_distance_bin = 1 # Muy Cerca    
+        elif state['next_next_pipe_dist_to_player'] < self.next_next_pipe_distance_threshold_far:
+            next_next_pipe_distance_bin = 2 # Distante
         else:
-            next_next_pipe_relative_position_bin = 1 # El gap de las tuberías más alejadas está alineado con el gap de las tuberías más próximas
+            next_next_pipe_distance_bin = 3 # Muy Distante            
 
         return (
-            relative_gap_position_y_bin,
             player_velocity_sign_bin,
+            relative_next_gap_position_y_bin,
             #player_danger_bin,
             next_pipe_distance_bin,
-            next_next_pipe_relative_position_bin,
+            relative_next_next_gap_position_y_bin,
+            next_next_pipe_distance_bin,
         )
 
     def act(self, state):
