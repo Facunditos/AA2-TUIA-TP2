@@ -72,7 +72,7 @@ plt.ylabel('R2')
 plt.legend()
 plt.suptitle('Selección de features: evolución del MSE y del R2 en entrenamiento y validación en función a las épocas')
 plt.tight_layout()
-plt.savefig('./imagenes_entrenamiento_nn/Figure_7.png')
+plt.savefig('./imagenes_entrenamiento_nn/Figure_8.png')
 # --- Guardar el modelo entrenado ---
 # COMPLETAR: Cambia el nombre si lo deseas
 model.save('flappy_q_nn_model.h5')

@@ -21,7 +21,7 @@ class NNAgent(QAgent):
         """
         discrete_state = self.discretize_state(state)
         valores_entrada = np.array(discrete_state)    
-        valores_entrada = valores_entrada.reshape(1,5)
+        valores_entrada = valores_entrada.reshape(1,len(discrete_state))
         predicted_q_values = self.model.predict(valores_entrada)[0]
         return self.actions[np.argmax(predicted_q_values)]
     

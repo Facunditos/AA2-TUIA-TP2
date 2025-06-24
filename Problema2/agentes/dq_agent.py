@@ -36,41 +36,27 @@ class QAgent(Agent):
         else:
             self.q_table = defaultdict(lambda: np.zeros(len(self.actions)))
         self.num_bins = {
-            'player_velocity_sign': 5, # Informa la dirección del vuelo del pájaro
+            'player_velocity_sign': 3, # Informa la dirección del vuelo del pájaro
             'next_gap_relative_y_position': 25,   # Informa la posición central del gap más próximo en relación a la posición del pájaro
-            'next_pipe_distance': 5, # Informa grado de cercanía del pájaro a las tuberías más próximas
+            'next_pipe_distance': 10, # Informa grado de cercanía del pájaro a las tuberías más próximas
             'next_next_gap_relative_y_position': 3, # Informa la posición central del gap más alejado en relación a la posición del pájaro
             'next_next_pipe_distance': 5, # Informa grado de cercanía del pájaro a las tuberías más alejadas
         }
         # Variables auxiliares para la discretización
-        self.player_velocity_up_fast_threshold = -7
-        self.player_velocity_up_slow_threshold = -3 
-        self.player_velocity_stable_threshold = 0
-        self.player_velocity_down_slow_threshold = 5 
+        self.player_velocity_threshold = -4
 
-        self.next_pipe_distance_threshold_vey_near = 58
-        self.next_pipe_distance_threshold_near = 109
-        self.next_pipe_distance_threshold_far = 177 
-
-        self.next_next_pipe_distance_threshold_vey_near = 209
-        self.next_next_pipe_distance_threshold_near = 257
-        self.next_next_pipe_distance_threshold_far = 321
 
     def discretize_state(self, state):
         """
         Permite pasar de un estado continuo a otro discreto customerizado
         """
         # player_velocity_sign
-        if state['player_vel'] <= self.player_velocity_up_fast_threshold:
-            player_velocity_sign_bin = 0 # Vuelo ascendente rápido
-        elif state['player_vel'] <= self.player_velocity_up_slow_threshold:
-            player_velocity_sign_bin = 1 # Vuelo ascendente lento
-        elif state['player_vel'] <= self.player_velocity_stable_threshold:
-            player_velocity_sign_bin = 2 # Vuelo plano
-        elif state['player_vel'] <= self.player_velocity_down_slow_threshold:
-            player_velocity_sign_bin = 3 # Vuelo descendente rápido
+        if state['player_vel'] < self.player_velocity_threshold:
+            player_velocity_sign_bin = 0 # Vuelo ascendente 
+        elif state['player_vel'] > self.player_velocity_threshold:
+            player_velocity_sign_bin = 2 # Vuelo descendenteo
         else: # Vuelo descendente muy rápido
-            player_velocity_sign_bin = 4 # Vuelo plano
+            player_velocity_sign_bin = 1 # Vuelo plano
 
         # next_gap_relative_y_position
         next_gap_center_y = state['next_pipe_top_y'] + self.game_pipe_gap / 2
@@ -100,7 +86,7 @@ class QAgent(Agent):
             player_velocity_sign_bin,
             relative_next_gap_position_y_bin,
             next_pipe_distance_bin,
-            relative_next_next_gap_position_y_bin,
+            #relative_next_next_gap_position_y_bin,
             #next_next_pipe_distance_bin,
         )
 
