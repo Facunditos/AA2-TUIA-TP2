@@ -8,6 +8,7 @@ import  matplotlib.pyplot as plt
 
 # --- Cargar Q-table entrenada ---
 QTABLE_PATH = 'flappy_birds_q_table.pkl'  # Cambia el path si es necesario
+
 with open(QTABLE_PATH, 'rb') as f:
     q_table = pickle.load(f)
 
@@ -38,8 +39,8 @@ model = Sequential([
     layers.Dense(128, activation="relu"),
     layers.Dropout(0.2),
     layers.Dense(128, activation="relu"),
-    layers.Dense(128, activation="relu"),
     layers.Dropout(0.2),
+    layers.Dense(128, activation="relu"),
     layers.Dense(units=2, activation='linear')
 ])
 
@@ -70,9 +71,9 @@ plt.plot(history.history['val_R2Score'], label = 'validación')
 plt.xlabel('Epoch')
 plt.ylabel('R2')
 plt.legend()
-plt.suptitle('Selección de features: evolución del MSE y del R2 en entrenamiento y validación en función a las épocas')
+plt.suptitle('Selección de features: evolución del MSE y del R2 \nen entrenamiento y validación en función a las épocas')
 plt.tight_layout()
-plt.savefig('./imagenes_entrenamiento_nn/Figure_8.png')
+plt.savefig('./imagenes_entrenamiento_nn/Figure_13.png')
 # --- Guardar el modelo entrenado ---
 # COMPLETAR: Cambia el nombre si lo deseas
 model.save('flappy_q_nn_model.h5')

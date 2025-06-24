@@ -36,59 +36,50 @@ class QAgent(Agent):
         else:
             self.q_table = defaultdict(lambda: np.zeros(len(self.actions)))
         self.num_bins = {
-            'player_velocity_sign': 3, # Informa la dirección del vuelo del pájaro
-            'next_gap_relative_y_position': 25,   # Informa la posición central del gap más próximo en relación a la posición del pájaro
-            'next_pipe_distance': 10, # Informa grado de cercanía del pájaro a las tuberías más próximas
-            'next_next_gap_relative_y_position': 3, # Informa la posición central del gap más alejado en relación a la posición del pájaro
-            'next_next_pipe_distance': 5, # Informa grado de cercanía del pájaro a las tuberías más alejadas
+            'relative_pos_y': 25, # 25 valores (a definir)
+            'player_velocity': 3,
+            'relative_pos_x': 12,
+            'distancia_critica_y' : 3
         }
-        # Variables auxiliares para la discretización
-        self.player_velocity_threshold = -4
+        self.player_v_threshold = 3
+        self.tuberia_y_threshold_up = 20
+        self.tuberia_y_threshold_bottom = -20
 
 
     def discretize_state(self, state):
         """
         Permite pasar de un estado continuo a otro discreto customerizado
         """
-        # player_velocity_sign
-        if state['player_vel'] < self.player_velocity_threshold:
-            player_velocity_sign_bin = 0 # Vuelo ascendente 
-        elif state['player_vel'] > self.player_velocity_threshold:
-            player_velocity_sign_bin = 2 # Vuelo descendenteo
-        else: # Vuelo descendente muy rápido
-            player_velocity_sign_bin = 1 # Vuelo plano
-
-        # next_gap_relative_y_position
-        next_gap_center_y = state['next_pipe_top_y'] + self.game_pipe_gap / 2
-        relative_next_gap_position_y = next_gap_center_y - state['player_y']
-        scaled_relative_next_gap_position_y = (relative_next_gap_position_y + self.game_height / 2) / self.game_height
-        relative_next_gap_position_y_bin = int(np.clip(scaled_relative_next_gap_position_y * self.num_bins['next_gap_relative_y_position'], 0, self.num_bins['next_gap_relative_y_position'] - 1))      
-
-        # next_pipe_distance
-        next_pipe_distance_bin = None
-        next_pipe_distance = state['next_pipe_dist_to_player'] / self.game_width
-        next_pipe_distance_bin = int(np.clip(next_pipe_distance * self.num_bins['next_pipe_distance'], 0, self.num_bins['next_pipe_distance'] - 1))
-
-        # next_next_gap_relative_y_position
-        if (next_gap_center_y < state['next_next_pipe_top_y']):
-            relative_next_next_gap_position_y_bin = 0
-        elif (next_gap_center_y<state['next_next_pipe_bottom_y']):
-            relative_next_next_gap_position_y_bin = 1
+        # 1. Posición relativa del jugador al centro del hueco de la tubería
+        centro_hueco_tuberia = (state['next_pipe_top_y'] + state['next_pipe_bottom_y'])*0.50  
+        pos_rel_centro_hueco_tuberia = centro_hueco_tuberia - state['player_y']
+        scales_pos_rel_centro_hueco_tuberia = (pos_rel_centro_hueco_tuberia + self.game.height / 2) / self.game.height
+        relative_pos_y_bin = int(np.clip(scales_pos_rel_centro_hueco_tuberia * self.num_bins['relative_pos_y'], 0, self.num_bins['relative_pos_y'] - 1))
+        
+        # 2. Signo de la velocidad del jugador
+        if state['player_vel'] < -self.player_v_threshold:
+            player_velocity_sign_bin = 0 # Moviéndose arriba
+        elif state['player_vel'] > self.player_v_threshold:
+            player_velocity_sign_bin = 2 # Moviéndose abajo
         else:
-            relative_next_next_gap_position_y_bin = 2
+            player_velocity_sign_bin = 1 # Quieto o casi quieto
+        
+        # 3. Distancia relativa a la siguiente tubería
+        distancia_tuberia_norm =  state['next_pipe_dist_to_player']/self.game.width
+        dist_tuberia_bin = int(np.clip(distancia_tuberia_norm * self.num_bins['relative_pos_x'], 0, self.num_bins['relative_pos_x'] - 1))
 
-        # next_next_pipe_distance
-        next_next_pipe_distance_bin = None
-        next_next_pipe_distance = state['next_next_pipe_dist_to_player'] / 420
-        next_next_pipe_distance_bin = int(np.clip(next_next_pipe_distance * self.num_bins['next_next_pipe_distance'], 0, self.num_bins['next_next_pipe_distance'] - 1))           
+        # 4 distnaicas criticas entre tuberias
 
-        return (
-            player_velocity_sign_bin,
-            relative_next_gap_position_y_bin,
-            next_pipe_distance_bin,
-            #relative_next_next_gap_position_y_bin,
-            #next_next_pipe_distance_bin,
-        )
+        centro_hueco_tuberia_next = (state['next_next_pipe_top_y'] + state['next_next_pipe_bottom_y']) * 0.50
+        pos_rel_centro_hueco_tuberia_next = centro_hueco_tuberia_next - state['player_y']
+        if pos_rel_centro_hueco_tuberia_next >= self.tuberia_y_threshold_up:
+            relative_critic_y_bin = 0
+
+        elif pos_rel_centro_hueco_tuberia_next < self.tuberia_y_threshold_bottom:
+            relative_critic_y_bin = 1
+        else:
+            relative_critic_y_bin = 2
+        return (relative_pos_y_bin, player_velocity_sign_bin, dist_tuberia_bin, relative_critic_y_bin)
 
     def act(self, state):
         """
