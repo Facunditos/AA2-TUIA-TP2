@@ -9,10 +9,10 @@ class NNAgent(QAgent):
     Agente que utiliza una red neuronal entrenada para aproximar la Q-table.
     La red debe estar guardada como TensorFlow SavedModel.
     """
-    def __init__(self, actions, game=None, model_path='flappy_q_nn_model.h5'):
+    def __init__(self, actions, game=None, model_path='flappy_clasificacion_q_nn_model.h5'):
         super().__init__(actions, game)
         # Cargar el modelo entrenado
-        self.model = tf.keras.models.load_model(model_path, custom_objects={'mse': MeanSquaredError()})
+        self.model = tf.keras.models.load_model(model_path)
 
     def act(self, state):
         """
@@ -22,8 +22,10 @@ class NNAgent(QAgent):
         discrete_state = self.discretize_state(state)
         valores_entrada = np.array(discrete_state)    
         valores_entrada = valores_entrada.reshape(1,len(discrete_state))
-        predicted_q_values = self.model.predict(valores_entrada)[0]
-        return self.actions[np.argmax(predicted_q_values)]
+        predicted_proba = self.model.predict(valores_entrada)[0][0]
+        th = 0.50
+        predicted_accion = predicted_proba>th
+        return self.actions[predicted_accion]
     
 
 

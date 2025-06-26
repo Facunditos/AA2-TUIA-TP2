@@ -33,14 +33,14 @@ except (ValueError, ModuleNotFoundError, AttributeError):
 
 # Inicializar el agente. El agente Q con epsilon cero para que la acción no sea aleatoria
 if (class_name=='QAgent'):
-    agent = AgentClass(actions, game,epsilon=0)
+    agent = AgentClass(actions, game,epsilon=0,load_q_table_path="nacho_flappy_birds_q_table.pkl")
 else:
     agent = AgentClass(actions, game)
     
 # Agente con acciones aleatorias
 total_rewards = []
 n_episode = 0
-while n_episode<100:
+while n_episode<10:
     env.reset_game()
     agent.reset()
     state_dict = env.getGameState()

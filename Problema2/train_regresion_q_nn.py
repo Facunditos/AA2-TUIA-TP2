@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 import  matplotlib.pyplot as plt
 
 # --- Cargar Q-table entrenada ---
-QTABLE_PATH = 'flappy_birds_q_table.pkl'  # Cambia el path si es necesario
+QTABLE_PATH = 'nacho_flappy_birds_q_table.pkl'  # Cambia el path si es necesario
 
 with open(QTABLE_PATH, 'rb') as f:
     q_table = pickle.load(f)
@@ -36,11 +36,9 @@ print('y_test.shape',y_test.shape)
 n_features = X_train.shape[1]
 model = Sequential([
     layers.Input(shape=(n_features,)),
-    layers.Dense(128, activation="relu"),
-    layers.Dropout(0.2),
-    layers.Dense(128, activation="relu"),
-    layers.Dropout(0.2),
-    layers.Dense(128, activation="relu"),
+    layers.Dense(256, activation="relu"),
+    layers.Dense(256, activation="relu"),
+    layers.Dense(256, activation="relu"),
     layers.Dense(units=2, activation='linear')
 ])
 
@@ -51,7 +49,7 @@ model.compile(optimizer='adam', loss='mse',metrics=['R2Score','MeanAbsoluteError
 # --- Entrenar la red neuronal ---
 # COMPLETAR: Ajustar hiperparámetros según sea necesario
 # model.fit(X, y, ... demas opciones de entrenamiento ...)
-history = model.fit(x=X_train,y=y_train, epochs=200, validation_data=(X_test, y_test))
+history = model.fit(x=X_train,y=y_train,batch_size=64, epochs=200, validation_data=(X_test, y_test),callbacks=tf.keras.callbacks.EarlyStopping(monitor='val_loss',verbose=1, patience=150, restore_best_weights=True))
 # --- Mostrar resultados del entrenamiento ---
 # Completar: Imprimir métricas de entrenamiento
 plt.figure(figsize=(8,5))
@@ -76,7 +74,7 @@ plt.tight_layout()
 plt.savefig('./imagenes_entrenamiento_nn/Figure_13.png')
 # --- Guardar el modelo entrenado ---
 # COMPLETAR: Cambia el nombre si lo deseas
-model.save('flappy_q_nn_model.h5')
+model.save('flappy_regresion_q_nn_model.h5')
 print('Modelo guardado como TensorFlow SavedModel en flappy_q_nn_model/')
 
 # --- Notas para los alumnos ---
